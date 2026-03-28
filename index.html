@@ -1,573 +1,589 @@
-<!DOCTYPE html>
-<html lang="hu">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hurghada Programok | Egyiptomi kirándulások</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Poppins', sans-serif; line-height: 1.6; color: #0F1419; }
 
-        nav {
-            position: fixed; top: 0; width: 100%; background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px); z-index: 1000; padding: 1rem 5%;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.05);
-        }
-        .logo { font-size: 1.5rem; font-weight: 800; color: #004E89; }
-        .logo span { color: #FF6B35; }
-        .nav-links { display: flex; gap: 2rem; list-style: none; }
-        .nav-links a { text-decoration: none; color: #0F1419; font-weight: 500; }
-        .nav-links a:hover { color: #FF6B35; }
-
-        .hero {
-            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            display: flex; align-items: center; justify-content: center; text-align: center;
-            padding: 2rem; color: white;
-        }
-        .hero h1 { font-size: 3.5rem; font-weight: 800; margin-bottom: 1rem; }
-        .hero p { font-size: 1.3rem; margin-bottom: 2rem; }
-        .btn {
-            padding: 1rem 2rem; border-radius: 50px; text-decoration: none; font-weight: 600;
-            display: inline-flex; align-items: center; gap: 0.5rem; margin: 0.5rem;
-        }
-        .btn-primary { background: white; color: #004E89; }
-        .btn-secondary { background: transparent; color: white; border: 2px solid white; }
-
-        section { padding: 5rem 5%; }
-        .section-title { text-align: center; margin-bottom: 3rem; }
-        .section-title h2 { font-size: 2.5rem; color: #004E89; }
-
-        .programs-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem; max-width: 1400px; margin: 0 auto;
-        }
-        .program-card {
-            background: white; border-radius: 20px; overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1); cursor: pointer;
-        }
-        .program-image {
-            height: 200px; background-size: cover; background-position: center;
-            position: relative;
-        }
-        .program-badge {
-            position: absolute; top: 1rem; right: 1rem;
-            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
-            color: white; padding: 0.5rem 1rem; border-radius: 25px; font-weight: 700;
-        }
-        .program-content { padding: 1.5rem; }
-        .program-number {
-            display: inline-block; background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
-            color: white; width: 30px; height: 30px; border-radius: 50%;
-            text-align: center; line-height: 30px; font-size: 0.8rem; font-weight: 700;
-        }
-        .program-title { font-size: 1.2rem; font-weight: 700; margin: 0.5rem 0; }
-        .program-price { font-size: 1.5rem; font-weight: 800; color: #FF6B35; }
-        .program-details {
-            max-height: 0; overflow: hidden; transition: max-height 0.5s ease;
-            background: #F8F9FA; border-radius: 10px;
-        }
-        .program-details.active { max-height: 2000px; padding: 1.5rem; margin-top: 1rem; }
-        .toggle-btn {
-            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
-            color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 25px;
-            cursor: pointer; font-weight: 600; width: 100%; margin-top: 1rem;
-        }
-
-        .reviews { background: #F8F9FA; }
-        .reviews-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem; max-width: 1200px; margin: 0 auto;
-        }
-        .review-card {
-            background: white; border-radius: 20px; overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-        }
-        .review-image { width: 100%; height: auto; display: block; }
-        .review-content { padding: 1.5rem; text-align: center; }
-        .stars { color: #FFD700; font-size: 1.2rem; margin-bottom: 0.5rem; }
-
-        .faq-container { max-width: 800px; margin: 0 auto; }
-        .faq-item {
-            background: white; border-radius: 15px; margin-bottom: 1rem;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden;
-        }
-        .faq-question {
-            padding: 1.5rem; cursor: pointer; display: flex;
-            justify-content: space-between; align-items: center; font-weight: 600;
-        }
-        .faq-answer {
-            max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
-            padding: 0 1.5rem;
-        }
-        .faq-item.active .faq-answer { max-height: 500px; padding-bottom: 1.5rem; }
-
-        .contact {
-            background: linear-gradient(135deg, #004E89 0%, #1A659E 100%);
-            color: white; text-align: center;
-        }
-        .contact h2 { color: white; font-size: 2.5rem; margin-bottom: 1rem; }
-        .contact-btn {
-            display: inline-flex; align-items: center; gap: 0.8rem;
-            padding: 1.2rem 2.5rem; border-radius: 50px; text-decoration: none;
-            font-weight: 700; font-size: 1.1rem; margin: 0.5rem;
-        }
-        .whatsapp-btn { background: #25D366; color: white; }
-        .facebook-btn { background: #1877F2; color: white; }
-
-        footer { background: #0F1419; color: white; text-align: center; padding: 2rem; }
-
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 2rem; }
-            .nav-links { display: none; }
-        }
-    </style>
-<base target="_blank">
-</head>
-<body>
-    <nav>
-        <div class="logo">Hurghada <span>Programok</span></div>
-        <ul class="nav-links">
-            <li><a href="#programok">Programok</a></li>
-            <li><a href="#velemenyek">Vélemények</a></li>
-            <li><a href="#gyik">GYIK</a></li>
-            <li><a href="#kapcsolat">Kapcsolat</a></li>
-        </ul>
-    </nav>
-
-    <section class="hero" id="fooldal">
-        <div>
-            <h1>Fedezd fel Egyiptom csodáit!</h1>
-            <p>Legjobb árak, megbízható szolgáltatás, felejthetetlen élmények</p>
-            <a href="#programok" class="btn btn-primary">Programok megtekintése</a>
-            <a href="https://wa.me/36206185741" class="btn btn-secondary" target="_blank">Írj nekünk</a>
-        </div>
-    </section>
-
-    <section id="programok">
-        <div class="section-title">
-            <h2>Programjaink és Áraink</h2>
-            <p>Válassz a 20+ felejthetetlen élményprogram közül</p>
-        </div>
-
-        <div class="programs-grid">
-            <!-- Program 1 -->
+            <!-- Program 1: Luxor -->
             <div class="program-card" onclick="toggleProgram(this)">
-                <div class="program-image" style="background-image: url('kingvalley.jpg')">
-                    <span class="program-badge">85€</span>
-                </div>
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/LngBQGjz/kingvalley.jpg')"><span class="program-badge">85€</span></div>
                 <div class="program-content">
                     <span class="program-number">1</span>
                     <h3 class="program-title">🏛️ Luxor + Királyok Völgye</h3>
                     <div class="program-price">85€ <small>(hőlégballon: 105€)</small></div>
                     <p>Egész napos kirándulás Luxorba, Egyiptom egyik legfontosabb ókori városába.</p>
-                    <button class="toggle-btn">Részletek</button>
+                    <button class="toggle-btn">Részletek megtekintése</button>
                     <div class="program-details">
-                        <p><strong>Program menete:</strong></p>
+                        <p><strong>Program leírása:</strong> Ez az egész napos kirándulás Hurghadából Luxorba Egyiptom egyik legfontosabb ókori városába vezet. A program során betekintést nyerhetsz az ókori egyiptomi civilizáció lenyűgöző történelmébe, templomokat, sírokat és világhírű műemlékeket látogatsz meg.</p>
+                        <h4>📋 Program menete:</h4>
                         <ul>
-                            <li>Indulás kora reggel (kb. 04:00)</li>
-                            <li>Karnak templom, Királyok Völgye</li>
-                            <li>Hatshepsut temploma, Memnón kolosszusai</li>
-                            <li>Ebéd a Nílus partján</li>
-                            <li>Visszaérkezés kb. 22:00</li>
+                            <li>Indulás a szállodától kora reggel (kb. 04:00)</li>
+                            <li>Utazás Luxorba (kb. 4 óra)</li>
+                            <li>Karnak templom meglátogatása (szent tó, szkarabeusz)</li>
+                            <li>Átkelés a Níluson hajóval</li>
+                            <li>Ebéd a Nílus partján (büfé jellegű)</li>
+                            <li>Királyok Völgye látogatása</li>
+                            <li>Hatshepsut királynő temploma</li>
+                            <li>Memnón kolosszusai (Amenhotep III szobrai)</li>
+                            <li>Alabástrom- és olajgyár látogatása</li>
+                            <li>Opcionális Banán-sziget hajókirándulás (+10 €)</li>
+                            <li>Visszaindulás Luxorból kb. 17:00–18:00</li>
+                            <li>Érkezés a szállodába kb. 22:00</li>
                         </ul>
-                        <p><strong>Tartalmazza:</strong> transzfer, belépők, ebéd, idegenvezetés</p>
-                        <p><strong>Gyerek:</strong> 5 éves korig ingyenes</p>
+                        <p><em>A program sorrendje változhat.</em></p>
+                        <h4>✅ Az ár tartalmazza:</h4>
+                        <ul><li>Transzfert Hurghadából</li><li>Belépőjegyeket</li><li>Níluson való hajózást</li><li>Ebédet</li><li>Idegenvezetést (angol/német/francia/lengyel/román)</li></ul>
+                        <h4>❌ Az ár nem tartalmazza:</h4>
+                        <ul><li>Italokat az ebédnél</li><li>Banán-sziget látogatását</li></ul>
+                        <p><strong>👶 Gyermek kedvezmény:</strong> 5 éves korig ingyenes</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Program 2 -->
+            <!-- Program 2: Kairó busz -->
             <div class="program-card" onclick="toggleProgram(this)">
-                <div class="program-image" style="background-image: url('cairo pyramids.jpg')">
-                    <span class="program-badge">65€</span>
-                </div>
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/N527CZRL/cairo-pyramids.jpg')"><span class="program-badge">65€</span></div>
                 <div class="program-content">
                     <span class="program-number">2</span>
                     <h3 class="program-title">🐫 Kairó + Piramisok (busz)</h3>
                     <div class="program-price">65€</div>
                     <p>Kirándulás a világhírű piramisokhoz és a Nagy Szfinxhez.</p>
-                    <button class="toggle-btn">Részletek</button>
+                    <button class="toggle-btn">Részletek megtekintése</button>
                     <div class="program-details">
+                        <p><strong>Program leírása:</strong> Egész napos kirándulás Hurghadából Kairóba, ahol testközelből ismerheted meg az ókori Egyiptom legikonikusabb látnivalóit, köztük a világhírű piramisokat és a Nagy Szfinxet.</p>
+                        <h4>📋 Program menete:</h4>
                         <ul>
-                            <li>Indulás hajnalban (01:00)</li>
-                            <li>Kairói Múzeum, Gízai piramisok</li>
-                            <li>Nagy Szfinx, ebéd</li>
+                            <li>Indulás a szállodától hajnalban (kb. 01:00)</li>
+                            <li>Utazás Kairóba busszal (kb. 8 óra)</li>
+                            <li>Kairói Nemzeti Múzeum meglátogatása</li>
+                            <li>Gízai piramisok megtekintése (Kheopsz, Kefrén, Mükerinosz)</li>
+                            <li>Nagy Szfinx</li>
+                            <li>Papirusz intézet és olajgyár látogatása</li>
+                            <li>Ebéd (büfé)</li>
+                            <li>Opcionális Nílus-hajózás (+10 €)</li>
+                            <li>Visszaindulás Kairóból délután</li>
+                            <li>Érkezés Hurghadába késő este</li>
                         </ul>
-                        <p><strong>Gyerek:</strong> 5 éves korig ingyenes</p>
+                        <p><em>A program sorrendje változhat.</em></p>
+                        <h4>✅ Az ár tartalmazza:</h4>
+                        <ul><li>Transzfert Hurghadából</li><li>Belépőjegyeket</li><li>Ebédet</li><li>Idegenvezetést</li></ul>
+                        <h4>❌ Az ár nem tartalmazza:</h4>
+                        <ul><li>Italokat az ebédnél</li><li>Opcionális Nílus-hajózást</li></ul>
+                        <p><strong>👶 Gyermekek:</strong> 5 éves korig ingyenes</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Program 3 -->
+            <!-- Program 3: Kairó repülő -->
             <div class="program-card" onclick="toggleProgram(this)">
-                <div class="program-image" style="background-image: url('cairo pyramids.jpg')">
-                    <span class="program-badge">290€</span>
-                </div>
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/N527CZRL/cairo-pyramids.jpg')"><span class="program-badge">290€</span></div>
                 <div class="program-content">
                     <span class="program-number">3</span>
                     <h3 class="program-title">✈️ Kairó + Piramisok (repülő)</h3>
                     <div class="program-price">290€</div>
                     <p>Kényelmes repülős kirándulás a hosszú buszozás helyett.</p>
-                    <button class="toggle-btn">Részletek</button>
+                    <button class="toggle-btn">Részletek megtekintése</button>
                     <div class="program-details">
+                        <p><strong>Program leírása:</strong> Egész napos, kényelmes repülős kirándulás Hurghadából Kairóba. Ideális választás azoknak, akik a hosszú buszozás helyett gyorsan szeretnék felfedezni Egyiptom fővárosát.</p>
+                        <h4>📋 Program menete:</h4>
                         <ul>
-                            <li>Repülés Hurghada-Kairó (1 óra)</li>
-                            <li>Múzeum, piramisok, ebéd</li>
-                            <li>Visszarepülés este</li>
+                            <li>Felvétel a szállodától kora reggel, transzfer a repülőtérre</li>
+                            <li>Repülés Hurghada–Kairó (kb. 1 óra)</li>
+                            <li>Egyiptomi Múzeum vagy Nagy Egyiptomi Múzeum látogatása</li>
+                            <li>Gízai piramisok megtekintése</li>
+                            <li>Nagy Szfinx</li>
+                            <li>Papirusz- és olajgyár látogatása</li>
+                            <li>Ebéd (büfé)</li>
+                            <li>Opcionális Nílus-hajózás</li>
+                            <li>Repülés vissza Hurghadába</li>
+                            <li>Érkezés a szállodába este</li>
                         </ul>
-                        <p><strong>Gyerek:</strong> 2 éves korig ingyenes</p>
+                        <p><em>A program sorrendje változhat.</em></p>
+                        <h4>✅ Az ár tartalmazza:</h4>
+                        <ul><li>Repülőjegy Hurghada–Kairó–Hurghada</li><li>Transzfereket</li><li>Belépőjegyeket</li><li>Ebédet</li><li>Idegenvezetést</li></ul>
+                        <h4>❌ Az ár nem tartalmazza:</h4>
+                        <ul><li>Italokat az ebédnél</li><li>Opcionális Nílus-hajózást</li></ul>
+                        <p><strong>👶 Gyermekek:</strong> 2 éves korig ingyenes (külön ülés nélkül)</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Program 4 -->
+            <!-- Program 4: Orange Bay -->
             <div class="program-card" onclick="toggleProgram(this)">
-                <div class="program-image" style="background-image: url('orangebay.jpg')">
-                    <span class="program-badge">25€</span>
-                </div>
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/hfQbZNV1/orangebay.jpg')"><span class="program-badge">25€</span></div>
                 <div class="program-content">
                     <span class="program-number">4</span>
-                    <h3 class="program-title">🏝️ Orange Bay</h3>
+                    <h3 class="program-title">🏝️ Orange Bay hajókirándulás</h3>
                     <div class="program-price">25€</div>
                     <p>Hajós kirándulás az Orange Bay szigetre sznorkelinggel.</p>
-                    <button class="toggle-btn">Részletek</button>
+                    <button class="toggle-btn">Részletek megtekintése</button>
                     <div class="program-details">
+                        <p><strong>Program leírása:</strong> Egész napos hajós kirándulás Hurghadából az Orange Bay szigetre. Kristálytiszta víz, fehér homokos part, sznorkeling a korallzátonyoknál és pihenés a tengerparton.</p>
+                        <h4>📋 Program menete:</h4>
                         <ul>
-                            <li>Két sznorkeling megálló</li>
-                            <li>Pihenés a szigeten</li>
+                            <li>Felvétel a szállodától reggel, transzfer a kikötőbe</li>
+                            <li>Hajózás a Vörös-tengeren</li>
+                            <li>Két sznorkeling megálló a korallzátonyoknál</li>
+                            <li>Tartózkodás az Orange Bay szigeten (strand, úszás, pihenés)</li>
                             <li>Ebéd a hajón</li>
+                            <li>Visszaút a kikötőbe</li>
+                            <li>Transzfer vissza a szállodába délután</li>
                         </ul>
-                        <p><strong>Gyerek:</strong> 5 éves korig ingyenes</p>
+                        <p><em>A program sorrendje változhat.</em></p>
+                        <h4>✅ Az ár tartalmazza:</h4>
+                        <ul><li>Transzfer oda-vissza</li><li>Hajókirándulás</li><li>Sznorkeling felszerelés</li><li>Ebéd</li></ul>
+                        <p><strong>👶 Gyermekek:</strong> 5 éves korig ingyenes</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Program 5 -->
+            <!-- Program 5: Búvárkirándulás -->
             <div class="program-card" onclick="toggleProgram(this)">
-                <div class="program-image" style="background-image: url('scuba.jpg')">
-                    <span class="program-badge">30€</span>
-                </div>
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/w7Rc4nDw/scuba.jpg')"><span class="program-badge">30€</span></div>
                 <div class="program-content">
                     <span class="program-number">5</span>
                     <h3 class="program-title">🤿 Búvárkirándulás</h3>
                     <div class="program-price">30€</div>
                     <p>Egész napos búvárprogram kezdőknek és haladóknak.</p>
-                    <button class="toggle-btn">Részletek</button>
+                    <button class="toggle-btn">Részletek megtekintése</button>
                     <div class="program-details">
+                        <p><strong>Program leírása:</strong> Egész napos hajós búvárprogram Hurghadából a Vörös-tengeren. Ideális választás kezdőknek és haladóknak is, akik szeretnék felfedezni a korallzátonyok gazdag élővilágát profi oktatók kíséretében.</p>
+                        <h4>📋 Program menete:</h4>
                         <ul>
-                            <li>Két merülés oktatóval</li>
-                            <li>Teljes felszerelés, ebéd</li>
+                            <li>Felvétel a szállodától reggel, transzfer a kikötőbe</li>
+                            <li>Hajózás a nyílt tengerre</li>
+                            <li>Eligazítás és felkészítés a merülések előtt</li>
+                            <li>Két búvármerülés különböző helyszíneken</li>
+                            <li>Lehetőség sznorkelingre</li>
+                            <li>Ebéd a hajón</li>
+                            <li>Pihenés a fedélzeten</li>
+                            <li>Visszatérés a kikötőbe</li>
+                            <li>Transzfer vissza a szállodába délután</li>
                         </ul>
-                        <p><strong>10 éves kortól</strong></p>
+                        <p><em>A program sorrendje változhat.</em></p>
+                        <h4>✅ Az ár tartalmazza:</h4>
+                        <ul><li>Transzfer oda-vissza</li><li>Hajókirándulás</li><li>Teljes búvárfelszerelés</li><li>Két merülés oktatóval</li><li>Ebéd</li></ul>
+                        <p><strong>⚠️ Fontos:</strong> Búvárkodás 10 éves kortól. Előzetes tapasztalat nem szükséges.</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Program 6 -->
+            <!-- Program 6: Dolphin House -->
             <div class="program-card" onclick="toggleProgram(this)">
-                <div class="program-image" style="background-image: url('dolphinhouse.jpg')">
-                    <span class="program-badge">20€</span>
-                </div>
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/crtMkPfg/dolphinhouse.jpg')"><span class="program-badge">20€</span></div>
                 <div class="program-content">
                     <span class="program-number">6</span>
-                    <h3 class="program-title">🐬 Dolphin House</h3>
+                    <h3 class="program-title">🐬 Dolphin House sznorkeling</h3>
                     <div class="program-price">20€</div>
                     <p>Hajós kirándulás vadon élő delfinek megfigyelésére.</p>
-                    <button class="toggle-btn">Részletek</button>
+                    <button class="toggle-btn">Részletek megtekintése</button>
                     <div class="program-details">
+                        <p><strong>Program leírása:</strong> Egész napos hajós kirándulás Hurghadából a Dolphin House területére, ahol lehetőség van vadon élő delfinek megfigyelésére, sznorkelingre a korallzátonyoknál és pihenésre a tengeren.</p>
+                        <h4>📋 Program menete:</h4>
                         <ul>
-                            <li>Delfinek megfigyelése</li>
-                            <li>Sznorkeling, ebéd</li>
+                            <li>Felvétel a szállodától reggel, transzfer a kikötőbe</li>
+                            <li>Hajózás a Dolphin House helyszínére</li>
+                            <li>Több sznorkeling megálló korallzátonyoknál</li>
+                            <li>Lehetőség delfinek megfigyelésére és úszásra (ha jelen vannak)</li>
+                            <li>Ebéd a hajón</li>
+                            <li>Visszaút a kikötőbe</li>
+                            <li>Transzfer vissza a szállodába délután</li>
                         </ul>
-                        <p><strong>Gyerek:</strong> 5 éves korig ingyenes</p>
+                        <p><em>A program sorrendje változhat.</em></p>
+                        <h4>✅ Az ár tartalmazza:</h4>
+                        <ul><li>Transzfer oda-vissza</li><li>Hajókirándulás</li><li>Sznorkeling felszerelés</li><li>Ebéd</li></ul>
+                        <p><strong>👶 Gyermekek:</strong> 5 éves korig ingyenes</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Program 7 -->
+            <!-- Program 7: Delfinárium -->
             <div class="program-card" onclick="toggleProgram(this)">
-                <div class="program-image" style="background-image: url('delphinshow.jpg')">
-                    <span class="program-badge">20€</span>
-                </div>
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/Mvfb3g1H/delphinshow.jpg')"><span class="program-badge">20€</span></div>
                 <div class="program-content">
                     <span class="program-number">7</span>
                     <h3 class="program-title">🎭 Delfinárium show</h3>
                     <div class="program-price">20€</div>
                     <p>Családbarát delfin- és oroszlánfóka show.</p>
-                    <button class="toggle-btn">Részletek</button>
+                    <button class="toggle-btn">Részletek megtekintése</button>
                     <div class="program-details">
+                        <p><strong>Program leírása:</strong> Rövid, családbarát program Hurghadában, ahol látványos delfin- és oroszlánfóka show-t nézhetsz meg. A műsor után lehetőség van közös fotóra vagy úszásra a delfinekkel.</p>
+                        <h4>📋 Program menete:</h4>
                         <ul>
-                            <li>50 perces show</li>
-                            <li>Lehetőség fotózásra a delfinekkel</li>
+                            <li>Felvétel a szállodától délután</li>
+                            <li>Érkezés a delfináriumhoz</li>
+                            <li>Delfin- és oroszlánfóka show (kb. 50 perc)</li>
+                            <li>Lehetőség fotózásra vagy úszásra a delfinekkel</li>
+                            <li>Visszautazás a szállodába</li>
                         </ul>
-                        <p><strong>Gyerek:</strong> 3 éves korig ingyenes</p>
+                        <p><em>A program sorrendje változhat.</em></p>
+                        <h4>✅ Az ár tartalmazza:</h4>
+                        <ul><li>Transzfer oda-vissza</li><li>Belépő a show-ra</li></ul>
+                        <h4>❌ Az ár nem tartalmazza:</h4>
+                        <ul><li>Fotózás vagy úszás a delfinekkel</li></ul>
+                        <p><strong>👶 Gyermekek:</strong> 3 éves korig ingyenes</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Program 8 -->
+            <!-- Program 8: Paradise Island -->
             <div class="program-card" onclick="toggleProgram(this)">
-                <div class="program-image" style="background-image: url('paradise.jpg')">
-                    <span class="program-badge">25€</span>
-                </div>
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/vcxL2C5z/paradise.jpg')"><span class="program-badge">25€</span></div>
                 <div class="program-content">
                     <span class="program-number">8</span>
-                    <h3 class="program-title">🌊 Paradise Island</h3>
+                    <h3 class="program-title">🌊 Paradise Island hajókirándulás</h3>
                     <div class="program-price">25€</div>
                     <p>Hajós kirándulás a Paradise Island szigetre.</p>
-                    <button class="toggle-btn">Részletek</button>
+                    <button class="toggle-btn">Részletek megtekintése</button>
                     <div class="program-details">
+                        <p><strong>Program leírása:</strong> Egész napos hajós kirándulás Hurghadából a Paradise Island nevű szigetre. Sznorkelezés a Vörös-tenger gyönyörű korallzátonyainál, pihenés a fehér homokos tengerparton, fürdés és napozás.</p>
+                        <h4>📋 Program menete:</h4>
                         <ul>
+                            <li>Reggeli felvétel a szállodától</li>
+                            <li>Transzfer a kikötőbe</li>
+                            <li>Hajózás a szigethez</li>
                             <li>Két sznorkeling megálló</li>
-                            <li>Szabadidő a szigeten</li>
-                            <li>Ebéd és italok</li>
+                            <li>Szabadidő a szigeten strandolásra</li>
+                            <li>Ebéd és italok a hajón</li>
+                            <li>Visszatérés a szállodába délután</li>
                         </ul>
+                        <h4>✅ Az ár tartalmazza:</h4>
+                        <ul><li>Oda-vissza transzfer</li><li>Hajókirándulás</li><li>Sznorkeling felszerelés</li><li>Ebéd és italok</li><li>Kísérő személyzet</li></ul>
+                        <p><strong>⏱️ Időtartam:</strong> kb. 8 óra</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Program 9 -->
+            <!-- Program 9: El Gouna -->
             <div class="program-card" onclick="toggleProgram(this)">
-                <div class="program-image" style="background-image: url('elguana.jpg')">
-                    <span class="program-badge">60€</span>
-                </div>
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/D84dpR11/elguana.jpg')"><span class="program-badge">60€</span></div>
                 <div class="program-content">
                     <span class="program-number">9</span>
-                    <h3 class="program-title">🚤 El Gouna lagúnák</h3>
+                    <h3 class="program-title">🚤 El Gouna lagúnás élmény</h3>
                     <div class="program-price">60€</div>
                     <p>Hajókirándulás „Egyiptom Velencéjében".</p>
-                    <button class="toggle-btn">Részletek</button>
+                    <button class="toggle-btn">Részletek megtekintése</button>
                     <div class="program-details">
+                        <p><strong>Program leírása:</strong> Szuper El Gouna élmény – Lagúnák, hajókirándulás és városnézés. El Gounát gyakran „Egyiptom Velencéjének" is nevezik a csatornái és vízi útjai miatt.</p>
+                        <h4>📋 Program menete:</h4>
                         <ul>
-                            <li>Lagúnás hajózás</li>
-                            <li>Városnézés, ebéd</li>
-                            <li>Sznorkeling lehetőség</li>
+                            <li>Felvétel a szállodából reggel (kb. 08:00–09:30)</li>
+                            <li>Transzfer El Gounába</li>
+                            <li>Hajókirándulás a lagúnákon</li>
+                            <li>Lehetőség: hajózás, pihenés, úszás, kajakozás, SUP, snorkeling</li>
+                            <li>Szabadidő El Gouna városában</li>
+                            <li>Ebéd és frissítők a hajón</li>
+                            <li>Visszatérés kb. 16:00</li>
                         </ul>
+                        <h4>✅ Az ár tartalmazza:</h4>
+                        <ul><li>Oda-vissza transzfert</li><li>Hajókirándulást</li><li>Ebédet és üdítőket</li><li>Sznorkeling felszerelést</li><li>Angol nyelvű kísérőt</li></ul>
                     </div>
                 </div>
             </div>
 
-            <!-- Program 10 -->
+            <!-- Program 10: Parasailing -->
             <div class="program-card" onclick="toggleProgram(this)">
-                <div class="program-image" style="background-image: url('parasailing.jpg')">
-                    <span class="program-badge">25€</span>
-                </div>
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/0bKdXh7C/parasailing.jpg')"><span class="program-badge">25€</span></div>
                 <div class="program-content">
                     <span class="program-number">10</span>
                     <h3 class="program-title">🪂 Parasailing</h3>
                     <div class="program-price">25€</div>
                     <p>Ejtőernyős repülés a Vörös-tenger felett.</p>
-                    <button class="toggle-btn">Részletek</button>
+                    <button class="toggle-btn">Részletek megtekintése</button>
                     <div class="program-details">
+                        <p><strong>Program leírása:</strong> Izgalmas vízi program Hurghadában, ahol egy ejtőernyő segítségével a hajó mögött repülhetsz a Vörös-tenger felett. Csodálatos panoráma nyílik a tengerre és a partvidékre.</p>
+                        <h4>📋 Program menete:</h4>
                         <ul>
-                            <li>7-8 perces repülés</li>
-                            <li>Lehetséges egyedül/párban</li>
+                            <li>Felvétel a szállodából (délelőtti vagy délutáni időpontban)</li>
+                            <li>Transzfer a kikötőbe</li>
+                            <li>Biztonsági eligazítás a hajón</li>
+                            <li>Kb. 7–8 perces parasailing repülés</li>
+                            <li>Visszatérés a kikötőbe</li>
+                            <li>Transzfer vissza a szállodába</li>
                         </ul>
+                        <p><strong>⚠️ Fontos:</strong> Lehetséges egyedül, párban vagy hárman. Maximális összsúly: 150 kg.</p>
+                        <h4>✅ Az ár tartalmazza:</h4>
+                        <ul><li>Szállodai felvétel és visszaszállítás</li><li>Hajós program és felszerelés</li><li>Biztonsági tájékoztatás</li><li>7–8 perces ejtőernyős repülés</li></ul>
+                        <p><strong>🧳 Ajánlott:</strong> Fürdőruha, törölköző, napszemüveg, naptej, ivóvíz</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Program 11 -->
+            <!-- Program 11: Quad -->
             <div class="program-card" onclick="toggleProgram(this)">
-                <div class="program-image" style="background-image: url('43c21d381a54e1312f3ce911d651d0d3.jpg')">
-                    <span class="program-badge">25€</span>
-                </div>
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/ZKTsJRTL/43c21d381a54e1312f3ce911d651d0d3.jpg')"><span class="program-badge">25€</span></div>
                 <div class="program-content">
                     <span class="program-number">11</span>
                     <h3 class="program-title">🏜️ Quad (Moto Safari)</h3>
                     <div class="program-price">25€</div>
                     <p>Sivatagi quad túra beduin falu látogatással.</p>
-                    <button class="toggle-btn">Részletek</button>
+                    <button class="toggle-btn">Részletek megtekintése</button>
                     <div class="program-details">
+                        <p><strong>Program leírása:</strong> Izgalmas sivatagi quad túra Hurghadában, amely során homokdűnéken és sivatagi útvonalakon vezetsz. A program reggeli vagy délutáni indulással érhető el.</p>
+                        <h4>📋 Program menete:</h4>
                         <ul>
-                            <li>40 km-es túra</li>
-                            <li>Beduin tea, tevegelés</li>
+                            <li>Felvétel a szállodából</li>
+                            <li>Transzfer a quad bázisra</li>
+                            <li>Vezetési oktatás és biztonsági eligazítás</li>
+                            <li>Quad túra a sivatagban</li>
+                            <li>Megálló egy beduin falunál</li>
+                            <li>Rövid tevegelési lehetőség és fotózás</li>
+                            <li>Beduin tea fogyasztása</li>
+                            <li>Visszaút quadokkal a bázisra</li>
+                            <li>Transzfer vissza a szállodába</li>
                         </ul>
+                        <p><strong>🛣️ Táv:</strong> kb. 40 km oda-vissza</p>
+                        <h4>✅ Az ár tartalmazza:</h4>
+                        <ul><li>Szállodai felvétel és visszaszállítás</li><li>Quad (ATV) használat</li><li>Vezetési oktatás</li><li>Beduin falulátogatás</li><li>Tevegelés</li><li>Tea a beduin táborban</li><li>Angol nyelvű kísérő</li></ul>
                     </div>
                 </div>
             </div>
 
-            <!-- Program 12 -->
+            <!-- Program 12: Super Safari -->
             <div class="program-card" onclick="toggleProgram(this)">
-                <div class="program-image" style="background-image: url('supersafari.jpg')">
-                    <span class="program-badge">30€</span>
-                </div>
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/0bKdXh7t/supersafari.jpg')"><span class="program-badge">30€</span></div>
                 <div class="program-content">
                     <span class="program-number">12</span>
                     <h3 class="program-title">🔥 Super Safari</h3>
                     <div class="program-price">30€</div>
                     <p>Quad + buggy + jeep + vacsora + show.</p>
-                    <button class="toggle-btn">Részletek</button>
+                    <button class="toggle-btn">Részletek megtekintése</button>
                     <div class="program-details">
+                        <p><strong>Program leírása:</strong> Izgalmas, többórás sivatagi program, amely során többféle járművet és élményt is kipróbálhatsz. Ideális választás azoknak, akik egyetlen program alatt szeretnék átélni a sivatag minden különleges arcát.</p>
+                        <h4>📋 Program menete:</h4>
                         <ul>
-                            <li>Többféle jármű, beduin falu</li>
-                            <li>Vacsora, esti műsor</li>
+                            <li>Felvétel a szállodából</li>
+                            <li>Transzfer a sivatagi bázisra</li>
+                            <li>Biztonsági eligazítás</li>
+                            <li>Quad túra a homokdűnéken</li>
+                            <li>Buggy (homokautó) vezetés</li>
+                            <li>Jeep 4x4 utazás a sivatagon keresztül</li>
+                            <li>Látogatás egy beduin faluba</li>
+                            <li>Tevegelés és fotózási lehetőség</li>
+                            <li>Beduin tea</li>
+                            <li>Naplemente megtekintése</li>
+                            <li>Vacsora és esti show program</li>
+                            <li>Transzfer vissza</li>
                         </ul>
+                        <h4>✅ Az ár tartalmazza:</h4>
+                        <ul><li>Quad és buggy használat</li><li>Jeep 4x4 sivatagi túra</li><li>Beduin falulátogatás</li><li>Tevegelés</li><li>Vacsora</li><li>Esti műsor</li><li>Angol nyelvű idegenvezető</li></ul>
+                        <h4>❌ Nem tartalmazza:</h4>
+                        <ul><li>Arafatka (fejkendő)</li><li>Porvédő szemüveg</li></ul>
+                        <p><strong>🧳 Ajánlott:</strong> Kényelmes zárt cipő, naptej, napszemüveg, ivóvíz, réteges öltözet</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Program 13 -->
+            <!-- Program 13: Jeep Safari -->
             <div class="program-card" onclick="toggleProgram(this)">
-                <div class="program-image" style="background-image: url('jeep.jpg')">
-                    <span class="program-badge">30€</span>
-                </div>
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/mt1NpK7M/jeep.jpg')"><span class="program-badge">30€</span></div>
                 <div class="program-content">
                     <span class="program-number">13</span>
                     <h3 class="program-title">🚙 Jeep Safari</h3>
                     <div class="program-price">30€</div>
                     <p>4x4 terepjárós túra vacsorával.</p>
-                    <button class="toggle-btn">Részletek</button>
+                    <button class="toggle-btn">Részletek megtekintése</button>
                     <div class="program-details">
+                        <p><strong>Program leírása:</strong> Izgalmas délutáni program, ahol 4x4 terepjárókkal fedezheted fel az egyiptomi sivatag lenyűgöző tájait. A túra során homokdűnéken haladtok át, miközben betekintést nyerhetsz a beduinok hagyományos életébe.</p>
+                        <h4>📋 Program menete:</h4>
                         <ul>
-                            <li>Off-road túra, beduin falu</li>
-                            <li>Naplemente, vacsora, show</li>
+                            <li>Felvétel a szállodából</li>
+                            <li>Transzfer a sivatagba 4x4 jeeppekkel</li>
+                            <li>Off-road túra a homokdűnék között</li>
+                            <li>Látogatás egy beduin faluba</li>
+                            <li>Beduin tea fogyasztása</li>
+                            <li>Rövid tevegelési lehetőség és fotózás</li>
+                            <li>Naplemente megtekintése</li>
+                            <li>Vacsora</li>
+                            <li>Esti show műsor</li>
+                            <li>Transzfer vissza</li>
                         </ul>
+                        <h4>✅ Az ár tartalmazza:</h4>
+                        <ul><li>Jeep szafari a sivatagban</li><li>Beduin falulátogatás</li><li>Tea</li><li>Tevegelés</li><li>Vacsora</li><li>Esti műsor</li><li>Idegenvezető</li></ul>
+                        <h4>❌ Nem tartalmazza:</h4>
+                        <ul><li>Italok a vacsora alatt</li></ul>
+                        <p><strong>🧳 Ajánlott:</strong> Kényelmes ruházat, zárt cipő, naptej, napszemüveg, ivóvíz</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Program 14 -->
+            <!-- Program 14: Batiskaf -->
             <div class="program-card" onclick="toggleProgram(this)">
-                <div class="program-image" style="background-image: url('orangebay.jpg')">
-                    <span class="program-badge">25€</span>
-                </div>
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/hfQbZNV1/orangebay.jpg')"><span class="program-badge">25€</span></div>
                 <div class="program-content">
                     <span class="program-number">14</span>
                     <h3 class="program-title">🐠 Batiskaf + snorkeling</h3>
                     <div class="program-price">25€</div>
                     <p>Üveg fenekű hajó a tenger alatti világhoz.</p>
-                    <button class="toggle-btn">Részletek</button>
+                    <button class="toggle-btn">Részletek megtekintése</button>
                     <div class="program-details">
-                        <ul>
-                            <li>1 óra megfigyelés</li>
-                            <li>30-40 perc snorkeling</li>
-                        </ul>
+                        <p><strong>Program leírása:</strong> Különleges tengeri kirándulás, amely során egy fél-tengeralattjáróra (batiskaf) szálltok fel. A hajó alsó szintjén nagy panorámaablakokon keresztül figyelhetitek meg a Vörös-tenger lenyűgöző víz alatti világát anélkül, hogy le kellene merülni.</p>
+                        <p>A túra során a hajó elvisz egy gyönyörű korallzátonyhoz, ahol lehetőség van kb. 30–40 perc snorkelingre is. Ideális családoknak és gyerekeknek.</p>
+                        <h4>✅ Az ár tartalmazza:</h4>
+                        <ul><li>Transzfer a hotelből és vissza</li><li>Hajókirándulás</li><li>Kb. 1 óra megfigyelés a batiskaf alsó szintjén</li><li>30–40 perc snorkeling</li><li>Snorkeling felszerelés</li><li>Angol nyelvű kísérő</li></ul>
+                        <h4>❌ Nem tartalmazza:</h4>
+                        <ul><li>Italok a hajón</li><li>Személyes kiadások</li></ul>
                     </div>
                 </div>
             </div>
 
-            <!-- Program 15 -->
+            <!-- Program 15: Lovaglás -->
             <div class="program-card" onclick="toggleProgram(this)">
-                <div class="program-image" style="background-image: url('horse riding.jpg')">
-                    <span class="program-badge">35€</span>
-                </div>
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/svG9Hb57/horse-riding.jpg')"><span class="program-badge">35€</span></div>
                 <div class="program-content">
                     <span class="program-number">15</span>
-                    <h3 class="program-title">🐎 Lovaglás + fürdés</h3>
+                    <h3 class="program-title">🐎 Lovaglás + fürdés a tengerben</h3>
                     <div class="program-price">35€</div>
-                    <p>Lovaglás a tengerparton és fürdés a lóval.</p>
-                    <button class="toggle-btn">Részletek</button>
+                    <p>2 órás lovas élmény a tengerparton és a Vörös-tengerben.</p>
+                    <button class="toggle-btn">Részletek megtekintése</button>
                     <div class="program-details">
-                        <ul>
-                            <li>2 óra lovaglás</li>
-                            <li>Tengerben fürdés a lóval</li>
-                            <li>Fotók, oktató</li>
-                        </ul>
+                        <p><strong>Program leírása:</strong> Életre szóló élményt nyújtó lovas kirándulás. Transzferrel elvisznek egy istállóhoz, ahonnan kb. 200 m-t sétáltok a homokos tengerpartra.</p>
+                        <h4>🏖️ Lovaglás a tengerparton:</h4>
+                        <ul><li>Kb. 40 perc lovaglás a parton El Gouna irányába</li><li>Vissza ugyanazon az úton</li><li>Választhatsz: tengerpart vagy dűnék között</li></ul>
+                        <h4>🌊 Tengerben való fürdés a lóval:</h4>
+                        <ul><li>A ló hátán besétálni a Vörös-tengerbe (kb. 1,20 m mély)</li><li>Kb. 30 perc a vízben</li><li>Lehetőség a ló hátán maradni vagy leszállni</li></ul>
+                        <h4>📸 Egyéb:</h4>
+                        <ul><li>Fotók készítése az oktatók által</li><li>Lehetőség a ló jutalmazására (hozhatsz gyümölcsöt/zöldséget)</li></ul>
+                        <h4>✅ Az ár tartalmazza:</h4>
+                        <ul><li>Transzfert a helyszínre és vissza</li><li>Lovaglást és tengerben fürdést a lóval</li><li>Fotókat a telefonodra</li><li>Oktatói kíséret</li></ul>
+                        <h4>❌ Nem tartalmazza:</h4>
+                        <ul><li>Tippek a személyzetnek</li><li>Kiegészítő transzfer-díjak</li><li>Ló takarmány vásárlása</li></ul>
                     </div>
                 </div>
             </div>
 
-            <!-- Program 17 -->
+            <!-- Program 16: Törökfürdő -->
             <div class="program-card" onclick="toggleProgram(this)">
-                <div class="program-image" style="background-image: url('nemo.jpg')">
-                    <span class="program-badge">35€</span>
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/Mvfb3g1n/aquarium.jpg')"><span class="program-badge">30-65€</span></div>
+                <div class="program-content">
+                    <span class="program-number">16</span>
+                    <h3 class="program-title">🧖‍♀️ Törökfürdő / Cleopatra SPA</h3>
+                    <div class="program-price">30€ - 65€</div>
+                    <p>Pihentető SPA-élmény hagyományos törökfürdővel.</p>
+                    <button class="toggle-btn">Részletek megtekintése</button>
+                    <div class="program-details">
+                        <p><strong>Program leírása:</strong> Pihentető SPA-élmény Hurghadában, amely a hagyományos törökfürdő élményét kínálja. Különféle gőzfürdőket, masszázsokat, jakuzzit és bőrradírozást tartalmaz.</p>
+                        <p><strong>Általános:</strong> Időtartam kb. 2–3 óra, naponta elérhető. Nőknek női, férfiaknak férfi masszőr. Öltözők és értékmegőrző széf rendelkezésre áll.</p>
+                        <h4>PROGRAM 1 – TÖRÖKFÜRDŐ (kb. 2 óra) – 30€:</h4>
+                        <ul><li>Száraz gőzfürdő (10–15 perc)</li><li>Nedves törökfürdő (10–15 perc)</li><li>Bőrradír kesztyűvel + habmasszázs (20–25 perc)</li><li>Jakuzzi és pihenőidő, italok (15–20 perc)</li></ul>
+                        <h4>PROGRAM 2 – CLEOPATRA SPA (kb. 3 óra) – 45€:</h4>
+                        <ul><li>Száraz és nedves gőzfürdő</li><li>Bőrradír + habmasszázs</li><li>Kókuszradír + „Cleopatra" arcpakolás</li><li>Jakuzzi, pihenőidő</li><li>Teljes test masszázs (45 perc)</li></ul>
+                        <h4>PROGRAM 3 – GYÓGYMASSZÁZS (kb. 2,5 óra) – 40€:</h4>
+                        <ul><li>90 perces gyógy-masszázs</li></ul>
+                        <h4>VIP PROGRAM – 65€:</h4>
+                        <p>Teljes Cleopatra program külön VIP szobában gyümölccsel és extra itallal (kb. 3 óra).</p>
+                        <p><strong>✨</strong> Tökéletes választás, ha egy kis luxus kényeztetésre vágysz!</p>
+                    </div>
                 </div>
+            </div>
+
+            <!-- Program 17: Nemo Island -->
+            <div class="program-card" onclick="toggleProgram(this)">
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/LngBQGjk/nemo.jpg')"><span class="program-badge">35€</span></div>
                 <div class="program-content">
                     <span class="program-number">17</span>
                     <h3 class="program-title">🌴 Nemo Island & Naplemente</h3>
                     <div class="program-price">35€</div>
                     <p>Naplementés túra a Nagy Giftun-szigeten.</p>
-                    <button class="toggle-btn">Részletek</button>
+                    <button class="toggle-btn">Részletek megtekintése</button>
                     <div class="program-details">
+                        <p><strong>Program leírása:</strong> Különleges élmény minden tenger- és vízi program kedvelő számára. A Nemo pihenőzóna a Nagy Giftun-szigeten található. Nyugodt, mégis élményekkel teli program felejthetetlen naplementével.</p>
+                        <h4>📋 Program menete:</h4>
                         <ul>
-                            <li>2 snorkeling megálló</li>
-                            <li>2-3 óra a szigeten</li>
+                            <li>Transzfer a hotelből kb. 10:00</li>
+                            <li>Hajóra szállás és indulás kb. 11:00–11:30</li>
+                            <li>2 snorkeling megálló (kb. 1–1 óra)</li>
+                            <li>Szigeten tartózkodás kb. 2–3 óra</li>
+                            <li>Ebéd és italok a hajón</li>
                             <li>Naplemente a tengeren</li>
+                            <li>Visszaérkezés a hotelbe kb. 19:00</li>
                         </ul>
+                        <h4>✅ Az ár tartalmazza:</h4>
+                        <ul><li>Ebéd és italok</li><li>Snorkel felszerelés</li><li>Idegenvezető</li><li>Transzfer Hurghadán belül</li></ul>
                     </div>
                 </div>
             </div>
 
-            <!-- Program 18 -->
+            <!-- Program 18: Makadi Water World -->
             <div class="program-card" onclick="toggleProgram(this)">
-                <div class="program-image" style="background-image: url('makadi.jpg')">
-                    <span class="program-badge">60€</span>
-                </div>
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/7fJMtjSM/makadi.jpg')"><span class="program-badge">60€</span></div>
                 <div class="program-content">
                     <span class="program-number">18</span>
                     <h3 class="program-title">🌊 Makadi Water World</h3>
                     <div class="program-price">60€</div>
                     <p>Aquapark 50+ csúszdával.</p>
-                    <button class="toggle-btn">Részletek</button>
+                    <button class="toggle-btn">Részletek megtekintése</button>
                     <div class="program-details">
-                        <ul>
-                            <li>Teljes napos belépő</li>
-                            <li>All inclusive ebéd</li>
-                        </ul>
+                        <p><strong>Program leírása:</strong> Az egyik legnagyobb aquapark a Vörös-tenger partján, ahol egy egész napos élmény vár rád tele csúszdákkal, medencékkel és vízi attrakciókkal. Több mint 50 csúszda és játék található itt.</p>
+                        <h4>🎢 Mit várhatsz?</h4>
+                        <ul><li>Óriási csúszdák (gyors, extrém és családi pályák)</li><li>Hullámmedence és lazy river</li><li>Külön gyerekzóna mini csúszdákkal</li><li>Splash zóna és vízi játszótér</li><li>Napágyak és pihenő részek</li></ul>
+                        <h4>📋 Program menete:</h4>
+                        <ul><li>Transzfer a hotelből reggel (kb. 09:30–10:00)</li><li>Érkezés az aquaparkba</li><li>Egész napos szabad program (kb. 10:00–17:00)</li><li>Ebéd és pihenés</li><li>Visszaindulás délután</li></ul>
+                        <h4>✅ Az ár tartalmazza:</h4>
+                        <ul><li>Belépő az aquaparkba (korlátlan használat)</li><li>Több mint 50 csúszda és attrakció</li><li>Ebéd és italok (üdítő, kávé/tea)</li><li>Transzfer légkondicionált járművel</li></ul>
+                        <h4>❌ Nem tartalmazza:</h4>
+                        <ul><li>Törölköző</li></ul>
+                        <p><strong>ℹ️ Fontos:</strong> Nyitvatartás: 10:00–17:00. Télen is működik fűtött medencékkel.</p>
+                        <p><strong>🎒 Mit vigyél:</strong> Fürdőruha, törölköző, papucs, naptej, napszemüveg, készpénz</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Program 19 -->
+            <!-- Program 19: Grand Aquarium -->
             <div class="program-card" onclick="toggleProgram(this)">
-                <div class="program-image" style="background-image: url('aquarium.jpg')">
-                    <span class="program-badge">50€</span>
-                </div>
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/Mvfb3g1n/aquarium.jpg')"><span class="program-badge">50€</span></div>
                 <div class="program-content">
                     <span class="program-number">19</span>
                     <h3 class="program-title">🐠 Grand Aquarium & Zoo</h3>
                     <div class="program-price">50€</div>
                     <p>Akvárium, esőerdő és mini állatkert.</p>
-                    <button class="toggle-btn">Részletek</button>
+                    <button class="toggle-btn">Részletek megtekintése</button>
                     <div class="program-details">
+                        <p><strong>Program leírása:</strong> Különleges élmény, ahol egy helyen fedezheted fel a tengeri világot és a szárazföldi állatokat is. Nem csak egy egyszerű akvárium, hanem komplexum akváriummal, esőerdővel és mini állatkerttel.</p>
+                        <h4>🌍 Mit láthatsz?</h4>
                         <ul>
-                            <li>1200+ állat, 100 faj</li>
-                            <li>Üveg alagút, cápák</li>
+                            <li>Hatalmas akváriumok több száz tengeri élőlénnyel</li>
+                            <li>Üveg alagút, ahol a fejed felett úsznak a halak 🦈</li>
+                            <li>Cápák, ráják, teknősök és színes trópusi halak</li>
+                            <li>Mini állatkert: majmok, krokodilok, flamingók, kígyók</li>
+                            <li>Esőerdő rész különleges növényekkel</li>
+                            <li>Fosszília kiállítás</li>
                         </ul>
+                        <p>Több mint <strong>1200 állat és 100 különböző faj!</strong></p>
+                        <h4>📋 Program menete:</h4>
+                        <ul><li>Transzfer a hotelből (reggel vagy délután)</li><li>Érkezés az akváriumba</li><li>Szabad bejárás és nézelődés (kb. 3–4 óra)</li><li>Fotózás, pihenés</li><li>Visszautazás</li></ul>
+                        <h4>✅ Az ár tartalmazza:</h4>
+                        <ul><li>Belépő az akváriumba és állatkertbe</li><li>Transzfer Hurghadán belül</li></ul>
+                        <p><strong>ℹ️ Fontos:</strong> Nyitvatartás: 09:00-tól estig. Fotózás vakuzás nélkül engedélyezett. Cápák etetése naponta többször megtekinthető.</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Program 20 -->
+            <!-- Program 20: Mahmya Island -->
             <div class="program-card" onclick="toggleProgram(this)">
-                <div class="program-image" style="background-image: url('mahmya.jpg')">
-                    <span class="program-badge">100€</span>
-                </div>
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/bsSHV41x/mahmya.jpg')"><span class="program-badge">100€</span></div>
                 <div class="program-content">
                     <span class="program-number">20</span>
                     <h3 class="program-title">☀️ Mahmya Island All Inclusive</h3>
                     <div class="program-price">100€</div>
                     <p>Luxus sziget élmény all inclusive ellátással.</p>
-                    <button class="toggle-btn">Részletek</button>
+                    <button class="toggle-btn">Részletek megtekintése</button>
                     <div class="program-details">
-                        <ul>
-                            <li>All inclusive ellátás</li>
-                            <li>Prémium szolgáltatások</li>
-                        </ul>
+                        <p><strong>Program leírása:</strong> Exkluzív nap a Mahmya szigeten a Vörös-tengeren. All inclusive ellátás, prémium szolgáltatások és felejthetetlen élmények.</p>
+                        <h4>✅ Az ár tartalmazza:</h4>
+                        <ul><li>Transzfer oda-vissza</li><li>Hajókirándulás</li><li>All inclusive ellátás</li><li>Sznorkeling felszerelés</li><li>Prémium szolgáltatások</li></ul>
                     </div>
                 </div>
             </div>
 
-            <!-- Program 21 -->
+            <!-- Program 21: Teknősök -->
             <div class="program-card" onclick="toggleProgram(this)">
-                <div class="program-image" style="background-image: url('turtles.jpg')">
-                    <span class="program-badge">60€</span>
-                </div>
+                <div class="program-image" style="background-image: url('https://i.postimg.cc/1fVc7bDC/turtles.jpg')"><span class="program-badge">60€</span></div>
                 <div class="program-content">
                     <span class="program-number">21</span>
                     <h3 class="program-title">🐢 Sznorkeling teknősökkel</h3>
                     <div class="program-price">60€</div>
                     <p>Snorkeling vadon élő teknősökkel.</p>
-                    <button class="toggle-btn">Részletek</button>
+                    <button class="toggle-btn">Részletek megtekintése</button>
                     <div class="program-details">
-                        <ul>
-                            <li>Teknősök megfigyelése</li>
-                            <li>Professzionális felszerelés</li>
-                        </ul>
+                        <p><strong>Program leírása:</strong> Egyedi lehetőség vadon élő teknősök megfigyelésére és úszásra velük természetes élőhelyükön.</p>
+                        <h4>✅ Az ár tartalmazza:</h4>
+                        <ul><li>Transzfer oda-vissza</li><li>Hajókirándulás</li><li>Professzionális snorkeling felszerelés</li><li>Tapasztalt kísérő</li><li>Biztosítás</li></ul>
                     </div>
                 </div>
             </div>
@@ -581,25 +597,16 @@
         </div>
         <div class="reviews-grid">
             <div class="review-card">
-                <img src="WhatsApp Image 2026-03-28 at 11.38.10 AM (2).png" alt="Vélemény 1" class="review-image">
-                <div class="review-content">
-                    <div class="stars">★★★★★</div>
-                    <p>Elégedett vendég</p>
-                </div>
+                <img src="https://i.postimg.cc/tnxZDQ8Q/Whats-App-Image-2026-03-28-at-11-38-10-AM-(2).png" alt="Vélemény 1" class="review-image">
+                <div class="review-content"><div class="stars">★★★★★</div><p>Elégedett vendég</p></div>
             </div>
             <div class="review-card">
-                <img src="WhatsApp Image 2026-03-28 at 11.38.10 AM.png" alt="Vélemény 2" class="review-image">
-                <div class="review-content">
-                    <div class="stars">★★★★★</div>
-                    <p>Dolphin House vendég</p>
-                </div>
+                <img src="https://i.postimg.cc/V0Cr4Q2m/Whats-App-Image-2026-03-28-at-11-38-10-AM.png" alt="Vélemény 2" class="review-image">
+                <div class="review-content"><div class="stars">★★★★★</div><p>Dolphin House vendég</p></div>
             </div>
             <div class="review-card">
-                <img src="WhatsApp Image 2026-03-28 at 11.38.13 AM (1).png" alt="Vélemény 3" class="review-image">
-                <div class="review-content">
-                    <div class="stars">★★★★★</div>
-                    <p>Ismétlő vendég</p>
-                </div>
+                <img src="https://i.postimg.cc/BPKLN9Rs/Whats-App-Image-2026-03-28-at-11-38-13-AM-(1).png" alt="Vélemény 3" class="review-image">
+                <div class="review-content"><div class="stars">★★★★★</div><p>Ismétlő vendég</p></div>
             </div>
         </div>
     </section>
@@ -628,12 +635,8 @@
     <section class="contact" id="kapcsolat">
         <h2>Kapcsolat</h2>
         <p>Foglalj most vagy kérdezz bátran!</p>
-        <a href="https://wa.me/36206185741" class="contact-btn whatsapp-btn" target="_blank">
-            <i class="fab fa-whatsapp"></i> WhatsApp
-        </a>
-        <a href="https://www.facebook.com/share/1AFyyHDwwm/" class="contact-btn facebook-btn" target="_blank">
-            <i class="fab fa-facebook"></i> Facebook
-        </a>
+        <a href="https://wa.me/36206185741" class="contact-btn whatsapp-btn" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+        <a href="https://www.facebook.com/share/1AFyyHDwwm/" class="contact-btn facebook-btn" target="_blank"><i class="fab fa-facebook"></i> Facebook</a>
     </section>
 
     <footer>
@@ -641,13 +644,8 @@
     </footer>
 
     <script>
-        function toggleProgram(card) {
-            const details = card.querySelector('.program-details');
-            details.classList.toggle('active');
-        }
-        function toggleFaq(item) {
-            item.classList.toggle('active');
-        }
+        function toggleProgram(card) { const details = card.querySelector('.program-details'); details.classList.toggle('active'); }
+        function toggleFaq(item) { item.classList.toggle('active'); }
     </script>
 </body>
 </html>
