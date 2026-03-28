@@ -97,6 +97,32 @@
             margin-bottom: 30px;
             text-transform: uppercase;
         }
+        /* FIX 1: Make title fit on mobile phones */
+@media screen and (max-width: 768px) {
+    .logo {
+        font-size: 20px !important;
+        letter-spacing: 2px !important;
+    }
+    
+    .hero-title {
+        font-size: 42px !important;
+        letter-spacing: 2px !important;
+        word-break: break-word !important;
+        line-height: 1.2 !important;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .logo {
+        font-size: 16px !important;
+        letter-spacing: 1px !important;
+    }
+    
+    .hero-title {
+        font-size: 32px !important;
+        letter-spacing: 1px !important;
+    }
+}
         
         .hero-text {
             font-size: 18px;
