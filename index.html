@@ -105,6 +105,148 @@
             margin-bottom: 30px;
             text-transform: uppercase;
         }
+        /* Promo Banner */
+.promo-banner {
+    background: linear-gradient(135deg, #00d4ff 0%, #0099cc 50%, #00d4ff 100%);
+    padding: 60px 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.promo-banner::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255,255,255,0.05) 10px,
+        rgba(255,255,255,0.05) 20px
+    );
+    animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.promo-container {
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+
+.promo-icon {
+    font-size: 60px;
+    margin-bottom: 20px;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.promo-title {
+    font-size: 42px;
+    font-weight: 800;
+    color: #000;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 0px rgba(255,255,255,0.3);
+    letter-spacing: 1px;
+}
+
+.promo-subtitle {
+    font-size: 20px;
+    color: #000;
+    font-weight: 600;
+    margin-bottom: 30px;
+    line-height: 1.5;
+}
+
+.promo-conditions {
+    background: rgba(0,0,0,0.8);
+    border-radius: 15px;
+    padding: 25px;
+    margin: 30px 0;
+    border: 3px solid #fff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.promo-conditions h3 {
+    color: #00d4ff;
+    font-size: 24px;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+}
+
+.promo-conditions ul {
+    list-style: none;
+    padding: 0;
+}
+
+.promo-conditions li {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 600;
+    padding: 10px 0;
+    text-align: left;
+    padding-left: 20px;
+}
+
+.promo-benefits {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 15px;
+    margin: 30px 0;
+}
+
+.benefit-item {
+    background: #000;
+    color: #00d4ff;
+    padding: 15px 20px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 16px;
+    border: 2px solid #00d4ff;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.promo-cta {
+    font-size: 28px;
+    font-weight: 800;
+    color: #000;
+    background: #fff;
+    display: inline-block;
+    padding: 20px 40px;
+    border-radius: 50px;
+    margin-top: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .promo-title { font-size: 28px; }
+    .promo-subtitle { font-size: 16px; }
+    .promo-cta { font-size: 20px; padding: 15px 25px; }
+    .promo-benefits { grid-template-columns: 1fr; }
+}
         /* FIX 1: Make title fit on mobile phones */
 @media screen and (max-width: 768px) {
     .logo {
@@ -505,7 +647,31 @@
             <a href="#programs" class="hero-btn">Programok megtekintése</a>
         </div>
     </section>
-
+<!-- FREE AIRPORT TRANSFER PROMO -->
+<section class="promo-banner">
+    <div class="promo-container">
+        <div class="promo-icon">🚐 ✈️</div>
+        <h2 class="promo-title">INGYENES reptéri transzfer Hurghadában!</h2>
+        <p class="promo-subtitle">Foglalj nálunk programokat, és élvezd a kényelmes érkezést és hazautazást stressz nélkül!</p>
+        
+        <div class="promo-conditions">
+            <h3>🎁 Az ingyenes transzfer feltételei:</h3>
+            <ul>
+                <li>👉 Minimum 5 fő érkezése</li>
+                <li>👉 Legalább 4 programon való részvétel</li>
+            </ul>
+        </div>
+        
+        <div class="promo-benefits">
+            <div class="benefit-item">✔️ Reptéri érkezéskor sofőr vár névtáblával</div>
+            <div class="benefit-item">✔️ Közvetlen utazás a hoteledhez</div>
+            <div class="benefit-item">✔️ Hazautazáskor visszaszállítás a reptérre</div>
+            <div class="benefit-item">✔️ Nincs alkudozás, nincs lehúzás</div>
+        </div>
+        
+        <div class="promo-cta">💥 Válaszd a biztos, kényelmes és teljes körű megoldást!</div>
+    </div>
+</section>
     <section class="programs" id="programs">
         <div class="section-header">
             <p class="section-subtitle">Válaszd ki az élményt</p>
