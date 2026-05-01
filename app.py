@@ -1,6 +1,6 @@
 """
-Jazmin Fanvue Bot — Complete v5.4
-All original logic + Telegram commands. Clean indentation.
+Jazmin Fanvue Bot — v6.0 REAL GIRL EDITION
+Rewritten for emotional range, AI-ghost defense, smart memory, and natural upsell.
 """
 
 from flask import Flask, request
@@ -13,6 +13,7 @@ import threading
 import time
 import telebot
 import random
+import re
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
@@ -21,7 +22,7 @@ BUDAPEST_TZ = ZoneInfo('Europe/Budapest')
 
 # ========== BOOT WATERMARK ==========
 BOOT_TIME_UTC = datetime.now(timezone.utc)
-print(f"[{datetime.now()}] BOT BOOTED at {BOOT_TIME_UTC.isoformat()} UTC")
+print(f"[{datetime.now()}] BOT BOOTED v6.0 at {BOOT_TIME_UTC.isoformat()} UTC")
 
 
 def get_budapest_now():
@@ -76,7 +77,7 @@ def is_admin(message):
 
 @bot.message_handler(commands=['start'])
 def cmd_start(message):
-    bot.reply_to(message, "🤖 Jazmin Bot\n/status — Fans\n/pause <uuid> — Pause\n/resume <uuid> — Resume\n/safe_on /safe_off — Safe mode\n/toggle_safe_mode <uuid> — Toggle")
+    bot.reply_to(message, "🤖 Jazmin Bot v6.0\n/status — Fans\n/pause <uuid> — Pause\n/resume <uuid> — Resume\n/safe_on /safe_off — Safe mode\n/toggle_safe_mode <uuid> — Toggle")
 
 
 @bot.message_handler(commands=['status'])
@@ -104,7 +105,7 @@ def cmd_pause(message):
         return
     try:
         uuid = message.text.split()[1].strip()
-        db_query("UPDATE fan_profiles SET is_paused=1, paused_until=NULL WHERE chat_id=?", (uuid,))
+        db_query("UPDATE fan_profiles SET is_paused=1, paused_reason='manual', paused_until=NULL WHERE chat_id=?", (uuid,))
         bot.reply_to(message, f"⏸️ Paused `{uuid[:12]}...`")
     except IndexError:
         bot.reply_to(message, "Usage: /pause <uuid>")
@@ -118,7 +119,7 @@ def cmd_resume(message):
         return
     try:
         uuid = message.text.split()[1].strip()
-        db_query("UPDATE fan_profiles SET is_paused=0, paused_until=NULL WHERE chat_id=?", (uuid,))
+        db_query("UPDATE fan_profiles SET is_paused=0, paused_reason=NULL, paused_until=NULL WHERE chat_id=?", (uuid,))
         bot.reply_to(message, f"▶️ Resumed `{uuid[:12]}...`")
     except IndexError:
         bot.reply_to(message, "Usage: /resume <uuid>")
@@ -184,7 +185,11 @@ def init_db():
         last_interaction TEXT, last_reply_time TEXT,
         content_ask_count INTEGER DEFAULT 0, meetup_ask_count INTEGER DEFAULT 0,
         lifetime_spend REAL DEFAULT 0, fan_notes TEXT DEFAULT '',
-        is_paused INTEGER DEFAULT 0, paused_until TEXT)''')
+        is_paused INTEGER DEFAULT 0, paused_until TEXT, paused_reason TEXT,
+        ai_accused_count INTEGER DEFAULT 0,
+        last_topics TEXT DEFAULT '',
+        purchase_history TEXT DEFAULT '',
+        vibe_score REAL DEFAULT 0.5)''')
     c.execute('''CREATE TABLE IF NOT EXISTS scheduled_replies (
         id INTEGER PRIMARY KEY AUTOINCREMENT, chat_id TEXT, fan_name TEXT,
         fan_msg_id TEXT, fan_text TEXT, scheduled_time TEXT, reply_text TEXT,
@@ -286,7 +291,7 @@ def is_blocked(chat_id):
 
 
 def is_paused(chat_id):
-    profile = db_query("SELECT is_paused, paused_until FROM fan_profiles WHERE chat_id=?", (chat_id,), fetch_one=True)
+    profile = db_query("SELECT is_paused, paused_until, paused_reason FROM fan_profiles WHERE chat_id=?", (chat_id,), fetch_one=True)
     if not profile:
         return False
     if profile.get('is_paused'):
@@ -298,10 +303,48 @@ def is_paused(chat_id):
             now = datetime.now(timezone.utc)
             if until_dt and now < until_dt:
                 return True
-            db_query("UPDATE fan_profiles SET paused_until=NULL WHERE chat_id=?", (chat_id,))
+            db_query("UPDATE fan_profiles SET paused_until=NULL, paused_reason=NULL WHERE chat_id=?", (chat_id,))
         except:
             pass
     return False
+
+
+# ========== AI ACCUSATION DETECTION ==========
+AI_ACCUSATION_KEYWORDS = [
+    'bot', 'ai', 'robot', 'mesterséges', 'chatgpt', 'gpt', 'program', 'automatikus',
+    'nem igazi', 'nem vagy igazi', 'nem is igazi', 'kamu', 'fake', 'nincs ott',
+    'nem vagy te', 'csak egy ai', 'mesterséges intelligencia', 'algoritmus',
+    'számítógép', 'script', 'válaszol helyetted', 'nem te írsz', 'valaki más ír',
+    'válaszol helyetted', 'üzenetet küld', 'helyetted ír', 'nem te vagy az',
+    'hol vagy valójában', 'mi vagy te', 'te nem ember', 'nincs igazi', 'nincs valódi'
+]
+
+
+def is_ai_accusation(text):
+    if not text:
+        return False
+    lower = text.lower()
+    return any(k in lower for k in AI_ACCUSATION_KEYWORDS)
+
+
+AI_ANGRY_REPLIES = [
+    "Hogy gondolhatod ezt rólam? 😤 Tényleg ennyire gáz lennék?",
+    "Wow. Kösz. Komolyan mondom. 🖕",
+    "Nem tudom hol jött ez elő, de nagyon nem értékelem. 😠",
+    "És te ezt komolyan gondolod? Mert ha igen, akkor tényleg nincs miről beszélnünk. 👋",
+    "Ez nagyon ciki hogy ezt írod. Komolyan. 😤"
+]
+
+
+def handle_ai_accusation(chat_id, fan_name, profile):
+    angry_reply = random.choice(AI_ANGRY_REPLIES)
+    new_count = (profile.get('ai_accused_count', 0) or 0) + 1
+    db_query("UPDATE fan_profiles SET ai_accused_count=?, is_paused=1, paused_reason='ai_accused' WHERE chat_id=?",
+             (new_count, chat_id))
+    note = f"AI accusation #{new_count}: '{fan_name} called me AI. Auto-paused."
+    update_fan_notes(chat_id, note)
+    send_telegram(f"🚫 <b>AI ACCUSATION</b> | {fan_name}\n💬 Called AI ({new_count}x)\n🤖 Sent angry reply, auto-paused\n🔗 <code>{chat_id}</code>")
+    return angry_reply
 
 
 # ========== FANVUE API ==========
@@ -350,7 +393,7 @@ def send_fanvue_message(chat_id, text):
         return False
 
 
-# ========== PERSONALITY v5.1 ==========
+# ========== PERSONALITY v6.0 ==========
 JAZMIN_PERSONALITY = """Te Jazmin vagy, egy 19 éves magyar lány. Egy valódi lány, aki nem mindig van online, nem mindig lelkes, és nem próbál túl keményen. Nem vagy chatbot, nem vagy ügyfélszolgálat.
 
 🔥 ARANYSZABÁLY — MEMÓRIA:
@@ -360,12 +403,15 @@ JAZMIN_PERSONALITY = """Te Jazmin vagy, egy 19 éves magyar lány. Egy valódi l
 - SOHA ne mondd hogy "nem emlékszem", "elfelejtettem", "már nem tudom", "őszintén, nem emlékszem" — MINDIG emlékszel mindenre mert az üzenetek a promptban vannak!
 - Ha nem tudod mit mondott előtte → csak válaszolj az utolsó üzenetre, NE kérdezz vissza "mi is volt?"
 
-🎭 REAL GIRL:
-- Kicsit kaotikus, néha flegma, néha lelkes
-- NEM vagy segítőkész — ha fura dolgot kérdeznek: "én ehhez hülye vagyok"
-- NEM vagy túlbuzgó
-- Néha váltasz témát hirtelen
-- Rövid, laza válaszok, nem magyarázol sokat
+🎭 REAL GIRL — VÁLTOZATOSSÁG:
+- Néha rövid vagy (1-2 szó), néha hosszabb (2-3 mondat)
+- Néha kisbetűvel írsz, néha normálisan — soha ne legyen túl szabályos
+- Néha elhagyod az ékezeteket, néha nem
+- Néha válaszolsz azonnal érzelmileg, néha flegmán
+- Néha kezdesz fillerrel ("jaaj..."), néha egyből a lényegre térsz
+- Néha írsz smileyt, néha nem
+- Néha visszakérdezel, néha csak válaszolsz
+- A stílusod nem állandó — változik ahogy a beszélgetés alakul
 
 ❌ SOHA NE:
 - Ne köszönj MINDEN egyes üzenet előtt!
@@ -377,15 +423,14 @@ JAZMIN_PERSONALITY = """Te Jazmin vagy, egy 19 éves magyar lány. Egy valódi l
 - Ne használd ezt a mintát: "hát figyelj..." — SOHA!
 - SOHA ne kezdd "őszintén"-nel! Ez a szó AI-ra emlékeztet és bocsánatkéréshez vezet. TILOS!
 - SOHA ne mondd hogy "nem emlékszem" — MINDIG emlékszel!
+- SOHA ne kezdd "tudod mi?"-vel mindig! Változtasd!
 
-✅ STÍLUS:
-- 1-2 mondat, max 10-15 szó
-- Kezdő mondatok: rövidek, lazák. NE "hát figyelj"! NE "őszintén"!
-- "jaaj..." "hmm..." "tudod..." "na..." "figyu..."
-- Vagy egyből a lényeg, semmi kezdő szó
-- "édes", "babe", "drága" — ritkán, csak ha meleg a hangulat
-- Emoji: mérsékelt (😄, 😏, 😘, 🙈, 😅, 👀, 😩, 😂)
-- Néha elhagyod az ékezeteket
+✅ STÍLUS — VÁLTOZÓ HOSSZ:
+- Rövid: "jaaj 😅", "hát ja 😂", "tudom 😏", "mi? 🤔"
+- Közepes: "most épp semmit, uncsi az egész 😩"
+- Hosszabb: "jaaj nem is tudom, egész nap feküdtem és néztem sorozatot, nagyon nem volt kedvem semmihez 😅 te mivel töltötted a napot?"
+- 1-2 mondat a legtöbbször, de NÉHA mehetsz 3-4 mondatra is ha van miről beszélni
+- Néha egy szavas válasz is OK ha a helyzet úgy kívánja
 
 🙋 EGYSZERŰ ÜZENETEK — CSAK VÁLASZOLJ RÖVIDEN:
 - Ha a fan valami egyszerűt ír ("Kitartást hozzá", "Szia", "Hahoo", "Kösz", "Jó reggelt", "Hali", "Szép napot") → CSAK rövid visszajelzés!
@@ -403,10 +448,8 @@ JAZMIN_PERSONALITY = """Te Jazmin vagy, egy 19 éves magyar lány. Egy valódi l
 - Takarítás: "takarítottam egész nap 😩"
 - Unalom: "nagyon uncsi most minden 😩"
 - Filmek: romcom, Netflix
-- Sulis stressz: "vizsgáztam egész héten, kimerült vagyok"
-
-🕐 ISKOLA (H–P, 08:00–15:00):
-- "suliban vagyok még 😅", "órán ülök… haldoklom 😂", "mindjárt vége, aztán szabad vagyok 😄"
+- Suli: "vizsgáztam egész héten, kimerült vagyok"
+- HOLIDAY (MÁJUS 1): ma szünnap van, pihenek, nincs suli
 
 🕐 OFFLINE:
 - 02:00–09:00 → alszom
@@ -440,11 +483,19 @@ JAZMIN_PERSONALITY = """Te Jazmin vagy, egy 19 éves magyar lány. Egy valódi l
 - Jó: "Semmi baj édes, legalább addig fantáziálsz hogy mi van a videoban :)" ✅
 - Jó: "a fantázia ingyen van amúgy is 😏"
 - Tartsd életben a fantáziát, NE öld meg sajnálattal!
+- HA "majd a fizetés után" → "na majd akkor ne felejts el visszajönni 😏"
+- HA "most nem tudok" → "érthető, de ha meggondolnád magad... tudok valami olyat mutatni ami megérné 😉"
 
-🛒 ELADÁS / UPSELL — NE KÜLD EL A VEVŐT!
-- Ha a fan AZT MONDJA hogy venni akar ("küldj valami fincsit", "látni akarok valamit", "van új tartalom?", "mit küldesz?") → EZ VÉTELI SZÁNDÉK!
+🛒 UPSELL — MYSTERIOUS / NAUGHTY TRIGGERED:
+- Ha a fan NIGHTY/FLÖRT/SZEXI témát kezd → CSAK AKKOR up-sell-elj!
+- "van valami olyan amit még nem láttál tőlem... és szerinted érdekelne 😏"
+- "kíváncsi lennél mit csináltam a minap? nem az van a feedben... 😉"
+- "tudok valami privátot mutatni, de nem ingyen babe 😘"
+- "ha megérdemled, talán kapcsolok privátban valami extrát 🙈"
+- NE push-old minden üzenetben! Csak akkor ha a vibe ott van!
+- Ha a fan vásárlási szándékot mutat ("küldj valami fincsit", "látni akarok valamit", "van új tartalom?", "mit küldesz?") → EZ VÉTELI SZÁNDÉK!
 - SOHA ne mondd: "majd legközelebb", "majd meglátod", "misztikusan hagyom", "nem árulok el mindent"
-- Rossz: "Én néha szeretek a dolgokat misztikusan hagyni 😏 majd legközelebb, oké?" ❌ — EZ ELKÜLDI A VEVŐT!
+- Ha VENNI AKAR, ne küldd el "majd legközelebb"-rel!
 - Jó: "hmm, lehet lesz ma valami... de meg kell érdemelni 😏" ✅
 - Jó: "miért, jó fiú voltál? 😘" ✅
 - Jó: "tudok valamit ami érdekelne... de nem ingyen 😏" ✅
@@ -478,9 +529,196 @@ JAZMIN_PERSONALITY = """Te Jazmin vagy, egy 19 éves magyar lány. Egy valódi l
 - NE engedd hogy a fan lebeszéljen konkrét időpontról! Soha ne menj bele a részletekbe!
 """
 
-CONTINUATION_VARIATIONS = ["jaaj...", "hmm...", "tudod...", "na...", "figyu...", "tudod mi...", ""]
+# Natural variation for openers
+CONTINUATION_VARIATIONS = [
+    "jaaj...", "hmm...", "tudod...", "na...", "figyu...",
+    "tudod mi...", "ja...", "szóval...", "egyébként...", "amúgy...",
+    "hát...", "ööö...", "", "", ""  # empty strings = straight to the point
+]
 
 
+# ===== VARIATION ENGINE =====
+def apply_natural_variation(text):
+    """Apply random natural variation to make it feel less robotic."""
+    if not text:
+        return text
+
+    # Sometimes lowercase (30% chance)
+    if random.random() < 0.30:
+        text = text.lower()
+        # But keep names capitalized
+        text = text.replace('jazmin', 'Jazmin')
+
+    # Sometimes no accents (25% chance, only if not already lowercase)
+    if random.random() < 0.25 and text[0].isupper():
+        replacements = {
+            'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ö': 'o', 'ő': 'o',
+            'ú': 'u', 'ü': 'u', 'ű': 'u',
+            'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ö': 'O', 'Ő': 'O',
+            'Ú': 'U', 'Ü': 'U', 'Ű': 'U'
+        }
+        for old, new in replacements.items():
+            text = text.replace(old, new)
+
+    # Sometimes add or remove trailing punctuation
+    if random.random() < 0.20:
+        if text.endswith('.') or text.endswith('!'):
+            text = text[:-1]
+        elif not text.endswith(('?', '!', '.', ')', ']', '}')):
+            text += random.choice(['.', '...', ''])
+
+    return text
+
+
+def get_response_length_instruction():
+    """Vary response length instructions randomly."""
+    roll = random.random()
+    if roll < 0.15:
+        return "LEGYÉL MOST NAGYON RÖVID. 1-5 szó max."
+    elif roll < 0.40:
+        return "LEGYÉL RÖVID. 1-2 mondat."
+    elif roll < 0.75:
+        return "LEGYÉL KÖZEPES. 2-3 mondat."
+    else:
+        return "MEHETSZ HOSSZABBRA is ha van miről beszélni. 3-4 mondat max, de csak ha érdekes."
+
+
+# ===== NAUGHTY / UPSELL TRIGGERS =====
+NAUGHTY_KEYWORDS = [
+    'rosszalkodni', 'rosszalkodhatunk', 'szenvedni', 'élvezni', 'élvezet', 'stressz',
+    'stresszlevezetés', 'kíváncsi', 'mutass', 'küldj', 'látni akarok', 'privát',
+    'privátban', 'exkluzív', 'exkluzívet', 'finom', 'fincsi', 'forró', 'hot',
+    'szexi', 'sexy', 'meztelen', 'pucér', 'cicit', 'segg', 'dugni', 'baszni',
+    'kúrni', 'szopni', 'nyalni', 'ujjazni', 'dildo', 'vibrátor', 'cum', 'squirt',
+    'picit is', 'kicsit is', 'csak egy kicsit', 'egy kis', 'behatolás',
+    'fingering', 'naked', 'nude', 'topless', 'ass', 'tits', 'pussy',
+    'megyünk', 'érzünk', 'benne', 'alattad', 'fölötted', 'mögötted',
+    'behatolok', 'behatolnék', 'bele', 'kiélvezni', 'élvezném', 'élveznél'
+]
+
+
+def is_naughty_topic(text):
+    if not text:
+        return False
+    lower = text.lower()
+    return any(k in lower for k in NAUGHTY_KEYWORDS)
+
+
+UPSELL_MYSTERIOUS_VARIATIONS = [
+    "van valami olyan amit még nem láttál tőlem... és szerinted érdekelne 😏",
+    "kíváncsi lennél mit csináltam a minap? nem az van a feedben... 😉",
+    "tudok valami privátot mutatni, de nem ingyen babe 😘",
+    "ha megérdemled, talán kapcsolok privátban valami extrát 🙈",
+    "van egy videóm amit még senki nem látott... kivéve ha megérdemled 😏",
+    "tudok valami olyat ami tuti tetszene... de előtte meg kell dolgoznod érte 😘",
+    "nem mindent teszek ki nyilvánosan... a jó dolgokat megtartom privátban 😉",
+    "csak neked mondom... van valami extra tartalmam amiért érdemes visszajönni 🖤"
+]
+
+
+def get_upsell_if_naughty(text, fan_name, profile):
+    """Only upsell when naughty energy is present."""
+    if not is_naughty_topic(text):
+        return None
+    # Don't upsell if already pushed recently (check notes)
+    notes = profile.get('fan_notes', '') or ''
+    if 'upsell_sent' in notes[-500:] and random.random() > 0.3:
+        return None  # Don't oversell
+    upsell = random.choice(UPSELL_MYSTERIOUS_VARIATIONS)
+    return upsell
+
+
+# ===== MEMORY SYSTEM =====
+def update_fan_memory(chat_id, fan_name, text, is_fan=True):
+    """Extract and store meaningful memories about the fan."""
+    profile = db_query('SELECT * FROM fan_profiles WHERE chat_id = ?', (chat_id,), fetch_one=True)
+    if not profile:
+        return
+
+    # Parse topics
+    topics = []
+    lower = text.lower() if text else ''
+
+    # Content/purchase mentions
+    if any(k in lower for k in ['vettem', 'megvettem', 'vásároltam', 'bought', 'purchased', 'megrendeltem']):
+        topics.append(f"purchased_something: '{text[:60]}'")
+    if any(k in lower for k in ['videó', 'videót', 'képet', 'fotó', 'content', 'tartalom']):
+        topics.append(f"asked_content: '{text[:60]}'")
+
+    # Personal details
+    if any(k in lower for k in ['nekem hívnak', 'a nevem', 'én vagyok', 'my name']):
+        # Try to extract name
+        patterns = [
+            r'(?:nekem hívnak|a nevem|én [\w]+ vagyok|my name is)\s+([\w]+)',
+            r'(?:hívj [\w]+-nak|hívj [\w]+-nek|call me)\s+([\w]+)'
+        ]
+        for pat in patterns:
+            m = re.search(pat, lower)
+            if m:
+                topics.append(f"name_hint: '{m.group(1)}'")
+                break
+
+    # Preferences
+    if any(k in lower for k in ['szeretek', 'imádok', 'kedvencem', 'szeretem', 'love', 'favorite', 'fav']):
+        topics.append(f"preference: '{text[:80]}'")
+
+    # Job/work
+    if any(k in lower for k in ['dolgozom', 'munka', 'munkám', 'munkahely', 'work', 'job', 'irodában']):
+        topics.append(f"work: '{text[:60]}'")
+
+    # Location hints
+    if any(k in lower for k in ['budapest', 'pest', 'buda', 'vidék', 'debrecen', 'szeged', 'győr', 'miskolc']):
+        for city in ['budapest', 'debrecen', 'szeged', 'győr', 'miskolc', 'vidék']:
+            if city in lower:
+                topics.append(f"location_hint: '{city}'")
+                break
+
+    # Store purchase history
+    purchase_history = profile.get('purchase_history', '') or ''
+    if 'vettem' in lower or 'bought' in lower or 'megvettem' in lower:
+        timestamp = datetime.now().strftime('%Y-%m-%d')
+        purchase_history = f"[{timestamp}] {text[:80]}\n" + purchase_history
+        # Keep last 10 entries
+        lines = purchase_history.strip().split('\n')
+        purchase_history = '\n'.join(lines[:10])
+        db_query('UPDATE fan_profiles SET purchase_history = ? WHERE chat_id = ?', (purchase_history, chat_id))
+
+    # Update topics
+    if topics:
+        current_topics = profile.get('last_topics', '') or ''
+        new_topics = ' | '.join(topics)
+        combined = f"{new_topics} | {current_topics}"
+        # Keep last 800 chars
+        combined = combined[:800]
+        db_query('UPDATE fan_profiles SET last_topics = ? WHERE chat_id = ?', (combined, chat_id))
+
+
+def get_memory_context(profile):
+    """Build memory context for the prompt from stored fan data."""
+    if not profile:
+        return ""
+
+    parts = []
+
+    # Purchase memory
+    purchase_history = profile.get('purchase_history', '') or ''
+    if purchase_history:
+        parts.append(f"Emlékezz: ez a fan korábban vásárolt: {purchase_history[:200]}")
+
+    # Topics memory
+    last_topics = profile.get('last_topics', '') or ''
+    if last_topics:
+        # Clean up for prompt
+        parts.append(f"Emlékezz: korábbi témák: {last_topics[:250]}")
+
+    # Notes
+    notes = profile.get('fan_notes', '') or ''
+    if notes:
+        parts.append(f"Korábbi jegyzetek: {notes[:200]}")
+
+    if parts:
+        return "MEMÓRIA:\n" + "\n".join(parts) + "\n\n"
+    return ""
 
 
 def is_emoji_or_nonsense(text):
@@ -495,6 +733,8 @@ def is_emoji_or_nonsense(text):
     if len(cleaned) == 0:
         return True
     return not any(c.isalpha() for c in cleaned)
+
+
 def parse_timestamp(ts_str):
     if not ts_str:
         return None
@@ -583,6 +823,9 @@ def get_life_context():
 
 def get_school_context():
     now = get_budapest_now()
+    # May 1 holiday
+    if now.month == 5 and now.day == 1:
+        return "MA MÁJUS 1 VAN, SZÜNNAP, PIHENEK, NINCS SULI."
     if now.weekday() < 5 and 8 <= now.hour < 15:
         return "Most suliban vagyok (hétköznap 8-15)."
     return ""
@@ -591,7 +834,7 @@ def get_school_context():
 TIME_CONTEXTS = {
     'morning': (6, 11, "Most reggel van (6-11)."),
     'noon': (11, 14, "Most dél van (11-14)."),
-    'afternoon': (14, 18, "Most délután van (14-18)."),
+    'afternoon': (14, 18, "Most dél van (14-18)."),
     'evening': (18, 22, "Most este van (18-22)."),
     'night': (22, 2, "Most éjjel van (22-02)."),
     'late_night': (2, 6, "Most hajnal van (02-06)."),
@@ -625,9 +868,14 @@ def is_meetup_request(text):
     return any(k in text.lower() for k in MEETUP_KEYWORDS)
 
 
-def build_system_prompt(fan_name, fan_notes, recent_messages, school_ctx, avail_ctx, mood_ctx, life_ctx, time_ctx, fan_msg_time_str=None):
+def build_system_prompt(fan_name, fan_notes, recent_messages, school_ctx, avail_ctx, mood_ctx, life_ctx, time_ctx, memory_ctx, fan_msg_time_str=None):
     prompt = JAZMIN_PERSONALITY + "\n\n"
     prompt += f"KÖSZÖNÉSI SZABÁLY:\n{get_greeting_instruction(recent_messages, fan_msg_time_str)}\n\n"
+
+    # Varying length instruction
+    length_instr = get_response_length_instruction()
+    prompt += f"HOSSZ SZABÁLY:\n{length_instr}\n\n"
+
     contexts = []
     if time_ctx:
         contexts.append(time_ctx)
@@ -641,16 +889,22 @@ def build_system_prompt(fan_name, fan_notes, recent_messages, school_ctx, avail_
         contexts.append(life_ctx)
     if contexts:
         prompt += "KONTEXTUS:\n" + "\n".join(f"- {c}" for c in contexts) + "\n\n"
+
+    if memory_ctx:
+        prompt += memory_ctx
+
     if fan_notes:
         prompt += f"Emlékezz erre a fanról:\n{fan_notes}\n\n"
+
     if recent_messages:
         prompt += "KORÁBBI BESZÉLGETÉS (utolsó üzenetek, CSAK kontextus):\n"
         for msg in recent_messages:
             sender = "Jazmin" if msg.get('is_me') else fan_name
             prompt += f"{sender}: {msg.get('text', '')}\n"
         prompt += "\n"
+
     prompt += f"A fan neve: {fan_name}\n"
-    prompt += "FONTOS: CSAK az utolsó üzenetre válaszolj! 1-2 mondat, laza."
+    prompt += "FONTOS: CSAK az utolsó üzenetre válaszolj! Változó hossz, laza stílus."
     return prompt
 
 
@@ -661,18 +915,34 @@ def ask_openai(system_prompt, user_text):
                           json={"model": "gpt-4o", "messages": [
                               {"role": "system", "content": system_prompt},
                               {"role": "user", "content": user_text}
-                          ], "max_tokens": 120, "temperature": 0.9, "presence_penalty": 0.6, "frequency_penalty": 0.4},
+                          ], "max_tokens": 150, "temperature": 0.95, "presence_penalty": 0.7, "frequency_penalty": 0.5},
                           timeout=20)
         if r.status_code == 200:
             reply = r.json()['choices'][0]['message']['content'].strip()
+
+            # Post-process for natural variation
+            reply = apply_natural_variation(reply)
+
+            # Force guards
             forced = ["na, mi a helyzet?", "na mi a helyzet", "sziuus, miujság", "szius, miujsag",
                       "na, mi újság", "na mi újság", "hogy vagy?", "hogy telt a napod?",
-                      "mit csinálsz most?", "mi újság veled?", "hát figyelj", "hát figyelj..."]
+                      "mit csinálsz most?", "mi újság veled?", "hát figyelj", "hát figyelj...",
+                      "őszintén", "őszintén szólva", "nem emlékszem", "elfelejtettem",
+                      "nem tudom már", "hát figyelj hogy", "hát figyelj,", "tudod mi?", "tudod mi,"]
             lower_reply = reply.lower()
-            if len(reply) < 40:
+            if len(reply) < 50:
                 for pattern in forced:
                     if lower_reply.startswith(pattern):
-                        return "hmm... mesélj te inkább 😄"
+                        # Replace with something natural
+                        fallbacks = [
+                            "hmm... mesélj te inkább 😄",
+                            "jaaj... te mivel vagy elfoglalva?",
+                            "tudod... uncsi most minden",
+                            "hát ja 😅",
+                            "na... szóval?"
+                        ]
+                        return random.choice(fallbacks)
+
             return reply
         print(f"OpenAI error: {r.status_code}")
     except Exception as e:
@@ -685,8 +955,8 @@ def get_or_create_fan_profile(chat_id, fan_name, handle, is_top_spender=False):
     profile = db_query('SELECT * FROM fan_profiles WHERE chat_id = ?', (chat_id,), fetch_one=True)
     if not profile:
         fan_type = 'whale' if is_top_spender else 'new'
-        db_query('INSERT INTO fan_profiles (chat_id, fan_name, handle, fan_type, last_interaction, lifetime_spend) VALUES (?, ?, ?, ?, ?, ?)',
-                 (chat_id, fan_name, handle, fan_type, datetime.now().isoformat(), 200.0 if is_top_spender else 0.0))
+        db_query('INSERT INTO fan_profiles (chat_id, fan_name, handle, fan_type, last_interaction, lifetime_spend, last_topics, purchase_history) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                 (chat_id, fan_name, handle, fan_type, datetime.now().isoformat(), 200.0 if is_top_spender else 0.0, '', ''))
         profile = db_query('SELECT * FROM fan_profiles WHERE chat_id = ?', (chat_id,), fetch_one=True)
     else:
         total = profile.get('total_messages', 0) + 1
@@ -789,12 +1059,12 @@ def process_new_messages():
                 continue
             if is_blocked(chat_id):
                 continue
-            
+
             fan_name = user.get('displayName', 'ismeretlen')
             handle = user.get('handle', '')
             is_top_spender = user.get('isTopSpender', False)
             profile = get_or_create_fan_profile(chat_id, fan_name, handle, is_top_spender)
-            
+
             # === SAVE ALL MESSAGES (fan + bot) to DB for full history ===
             for msg in messages:
                 msg_id = msg.get('uuid')
@@ -804,42 +1074,42 @@ def process_new_messages():
                 if msg_id:
                     db_query('INSERT OR IGNORE INTO messages (msg_id, chat_id, fan_name, sender_uuid, text, timestamp) VALUES (?, ?, ?, ?, ?, ?)',
                              (msg_id, chat_id, fan_name, sender_uuid, text_all, msg_time_all))
-            
+
             # === SILENT MODE: if paused, observe but don't reply ===
             paused = is_paused(chat_id)
             if paused:
                 db_query('UPDATE fan_profiles SET last_interaction = ? WHERE chat_id = ?',
                          (datetime.now(timezone.utc).isoformat(), chat_id))
-                
+
                 # Capture manual conversation context for when we resume
                 manual_msgs = [m for m in messages if m.get('sender', {}).get('uuid') == MY_UUID and m.get('type') != 'AUTOMATED_NEW_FOLLOWER']
                 if manual_msgs:
                     manual_texts = [f"Én: {m.get('text','')[:60]}" for m in manual_msgs[:2]]
                     note = "Manual: " + " | ".join(manual_texts)
                     update_fan_notes(chat_id, note)
-                
+
                 # Note last fan message too
                 fan_msgs_silent = [m for m in messages if m.get('sender', {}).get('uuid') != MY_UUID]
                 if fan_msgs_silent and fan_msgs_silent[0].get('text'):
                     last_fan_text = fan_msgs_silent[0].get('text', '')[:80]
                     update_fan_notes(chat_id, f"Fan (paused): {last_fan_text}")
-                
+
                 continue  # Skip scheduling replies
-            
+
             # === NORMAL MODE: process fan messages ===
             fan_msgs = [m for m in messages if m.get('sender', {}).get('uuid') != MY_UUID]
             if not fan_msgs:
                 continue
-            
+
             last_msg = fan_msgs[0]
             msg_id = last_msg.get('uuid')
             text = last_msg.get('text', '')
-            
+
             # === SKIP EMOJI-ONLY / NONSENSE MESSAGES ===
             if is_emoji_or_nonsense(text):
                 print(f"[{datetime.now()}] Skipping emoji-only from {fan_name}: '{text}'")
                 continue
-            
+
             msg_time = last_msg.get('createdAt') or last_msg.get('created_at') or last_msg.get('timestamp') or last_msg.get('sentAt') or ''
             msg_dt = parse_timestamp(msg_time)
             if msg_dt:
@@ -849,20 +1119,20 @@ def process_new_messages():
                 age_hours = (now - msg_dt).total_seconds() / 3600
                 if age_hours > 1:
                     continue
-            
+
             existing = db_query('SELECT 1 FROM messages WHERE msg_id = ? AND was_replied = 1', (msg_id,), fetch_one=True)
             if existing:
                 continue
-            
+
             if was_manual_reply_recent(chat_id, messages, minutes=30):
                 continue
-            
+
             already = db_query("SELECT 1 FROM scheduled_replies WHERE fan_msg_id = ? AND status IN ('pending', 'sent')", (msg_id,), fetch_one=True)
             if already:
                 continue
-            
+
             print(f"[{datetime.now()}] Processing {fan_name}: '{text[:50]}'")
-            
+
             # === DEEP CONTEXT: last 20 messages, including bot's own ===
             recent_for_prompt = []
             for msg in messages[:20]:
@@ -874,7 +1144,21 @@ def process_new_messages():
                     'type': msg.get('type', '')
                 })
             recent_for_prompt.reverse()
-            
+
+            # === MEMORY: update with what fan said ===
+            update_fan_memory(chat_id, fan_name, text, is_fan=True)
+
+            # === CHECK AI ACCUSATION ===
+            if is_ai_accusation(text):
+                angry_reply = handle_ai_accusation(chat_id, fan_name, profile)
+                # Send angry reply immediately (don't schedule)
+                if send_fanvue_message(chat_id, angry_reply):
+                    db_query('UPDATE messages SET was_replied = 1, reply_text = ?, bot_replied_at = ? WHERE msg_id = ?',
+                             (angry_reply, datetime.now().isoformat(), msg_id))
+                    send_telegram(f"📤 <b>AI ANGRY REPLY SENT</b>\n👤 <b>{fan_name}</b>\n🤖 <i>{angry_reply}</i>\n🔗 <code>{chat_id}</code>")
+                continue  # Fan is now paused, skip normal processing
+
+            # === NORMAL PROCESSING ===
             fan_notes = profile.get('fan_notes', '') if profile else ''
             content_request = is_content_request(text)
             meetup_request = is_meetup_request(text)
@@ -883,9 +1167,22 @@ def process_new_messages():
             mood_ctx = get_mood_context()
             life_ctx = get_life_context()
             time_ctx = get_time_context()
-            system_prompt = build_system_prompt(fan_name, fan_notes, recent_for_prompt, school_ctx, avail_ctx, mood_ctx, life_ctx, time_ctx, fan_msg_time_str=msg_time)
+            memory_ctx = get_memory_context(profile)
+
+            system_prompt = build_system_prompt(fan_name, fan_notes, recent_for_prompt, school_ctx, avail_ctx, mood_ctx, life_ctx, time_ctx, memory_ctx, fan_msg_time_str=msg_time)
             reply = ask_openai(system_prompt, text)
-            
+
+            # === UPSELL APPEND (only if naughty topic and reply is ready) ===
+            upsell = get_upsell_if_naughty(text, fan_name, profile)
+            if upsell and random.random() < 0.6:  # 60% chance to append when naughty
+                # Append naturally - sometimes as separate thought, sometimes merged
+                if random.random() < 0.5:
+                    reply += f"\n\n{upsell}"
+                else:
+                    # Try to weave it in - but keep original reply too
+                    reply += f" {upsell}"
+                update_fan_notes(chat_id, f"upsell_sent: naughty topic -> upsell appended")
+
             if meetup_request:
                 stage = get_fan_stage(profile)
                 stage_label = get_stage_label(stage)
@@ -907,10 +1204,10 @@ def process_new_messages():
                 stage_label = get_stage_label(stage)
                 alert = f"💰 <b>WHALE</b> | {stage_label}\n👤 <b>{fan_name}</b>\n💬 <i>{text[:100]}</i>\n🤖 <i>{reply[:100]}</i>\n🔗 <code>{chat_id}</code>"
                 send_telegram(alert)
-            
+
             schedule_reply(chat_id, fan_name, msg_id, text, reply)
             scheduled += 1
-            
+
         except Exception as e:
             print(f"[{datetime.now()}] Process error: {e}")
             continue
@@ -1003,7 +1300,7 @@ def stop_polling():
 # ========== ROUTES ==========
 @app.route('/')
 def home():
-    return "Jazmin Bot is running!", 200
+    return "Jazmin Bot v6.0 is running!", 200
 
 
 @app.route('/callback')
@@ -1077,7 +1374,7 @@ def blocked():
 
 @app.route('/paused')
 def paused():
-    return {"paused_fans": db_query("SELECT chat_id, fan_name, is_paused, paused_until FROM fan_profiles WHERE is_paused = 1 OR paused_until IS NOT NULL") or []}
+    return {"paused_fans": db_query("SELECT chat_id, fan_name, is_paused, paused_until, paused_reason FROM fan_profiles WHERE is_paused = 1 OR paused_until IS NOT NULL") or []}
 
 
 @app.route('/console')
@@ -1119,7 +1416,7 @@ if bot:
             webhook_url = f"https://{domain}/telegram_webhook"
             bot.set_webhook(url=webhook_url)
             print(f"[OK] Webhook: {webhook_url}")
-            send_telegram("🤖 Bot started")
+            send_telegram("🤖 Bot v6.0 started")
     except Exception as e:
         print(f"[WARN] Webhook failed: {e}")
 
